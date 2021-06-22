@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "rfmagnet",
+  "version": "${version}",
+
+  "name": "RF Magnet",
+  "description": "A mod that adds magnets that work on RF",
+  "authors": [
+    "Rangetuur"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/rfmagnet/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.rangetuur.rfmagnet.RFMagnet"
+    ],
+    "client": [
+      "com.rangetuur.rfmagnet.RFMagnetClient"
+    ]
+  },
+  "mixins": [
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "1.17.x",
+    "java": ">=16"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
