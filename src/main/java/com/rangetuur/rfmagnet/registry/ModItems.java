@@ -15,8 +15,8 @@ public class ModItems {
     private static RFMagnetConfig config = AutoConfig.getConfigHolder(RFMagnetConfig.class).getConfig();
 
     //Items
-    public static final Item BASIC_MAGNET = new MagnetItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), config.magnets.range_basic_magnet, config.magnets.capacity_basic_magnet, EnergyTier.MICRO);
-    public static final Item ADVANCED_MAGNET = new MagnetItem(new Item.Settings().group(ItemGroup.TOOLS).fireproof().maxCount(1), config.magnets.range_advanced_magnet, config.magnets.capacity_advanced_magnet, EnergyTier.MICRO);
+    public static final Item BASIC_MAGNET = new MagnetItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), config.magnets.range_basic_magnet, config.magnets.capacity_basic_magnet, EnergyTier.MEDIUM);
+    public static final Item ADVANCED_MAGNET = new MagnetItem(new Item.Settings().group(ItemGroup.TOOLS).fireproof().maxCount(1), config.magnets.range_advanced_magnet, config.magnets.capacity_advanced_magnet, EnergyTier.EXTREME);
 
     //Block Items
     public static final BlockItem MAGNET_JAR = new BlockItem(ModBlocks.MAGNET_JAR, new Item.Settings().group(ItemGroup.TRANSPORTATION));

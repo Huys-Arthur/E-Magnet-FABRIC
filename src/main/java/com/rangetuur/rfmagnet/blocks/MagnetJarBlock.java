@@ -21,6 +21,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import team.reborn.energy.EnergyHolder;
 
 import java.util.stream.Stream;
 
@@ -55,7 +56,7 @@ public class MagnetJarBlock extends Block implements BlockEntityProvider {
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         Inventory blockEntity = (Inventory) world.getBlockEntity(pos);
 
-        if (!player.getStackInHand(hand).isEmpty() && player.getStackInHand(hand).getItem() instanceof MagnetItem) {
+        if (!player.getStackInHand(hand).isEmpty() && player.getStackInHand(hand).getItem() instanceof EnergyHolder) {
             if (blockEntity.getStack(0).isEmpty()) {
                 blockEntity.setStack(0, player.getStackInHand(hand).copy());
                 player.getStackInHand(hand).setCount(0);

@@ -24,10 +24,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.Energy;
-import team.reborn.energy.EnergySide;
-import team.reborn.energy.EnergyStorage;
-import team.reborn.energy.EnergyTier;
+import team.reborn.energy.*;
 
 import java.util.List;
 
@@ -80,7 +77,7 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        return stack.getItem() instanceof MagnetItem;
+        return stack.getItem() instanceof EnergyHolder;
     }
 
     @Override
@@ -93,7 +90,7 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
         MagnetJarBlockEntity e = (MagnetJarBlockEntity) world.getBlockEntity(pos);
 
         if (e!=null) {
-            if(e.getStack(0)!=ItemStack.EMPTY){
+            if(e.getStack(0)!=ItemStack.EMPTY && Energy.of(e.getStack(0)).getEnergy()!=Energy.of(e.getStack(0)).getMaxStored()){
                 BlockEntity entityUp = world.getBlockEntity(e.getPos().up());
                 if (config.blocks.generate_energy_magnet_jar){
                     if (world.getFluidState(e.getPos().up()).getFluid() instanceof LavaFluid){
@@ -103,7 +100,9 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
                 else if (entityUp!=null){
                     Energy.of(entityUp).side(EnergySide.DOWN).into(Energy.of(e.getStack(0))).move();
                 }
-                e.attractItemsAroundBlock(pos, e.getStack(0));
+                if(e.getStack(0).getItem() instanceof MagnetItem){
+                    e.attractItemsAroundBlock(pos, e.getStack(0));
+                }
             }
             if (e.getStack(1).isEmpty()) {
                 e.putItemAroundBlockInInventory();
@@ -127,8 +126,8 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
                     if(Energy.of(stack).getEnergy()>=energyForItem) {
 
                         Vec3d itemVector = new Vec3d(item.getX(), item.getY(), item.getZ());
-                        Vec3d playerVector = new Vec3d(x, y, z);
-                        item.move(null, playerVector.subtract(itemVector).multiply(0.5));
+                        Vec3d blockVector = new Vec3d(x, y, z);
+                        item.move(null, blockVector.subtract(itemVector).multiply(0.5));
 
                         Energy.of(stack).extract(energyForItem);
                     }

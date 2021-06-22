@@ -20,7 +20,7 @@ import team.reborn.energy.EnergyTier;
 
 import java.util.List;
 
-public class MagnetItem extends Item implements EnergyHolder, CustomDurabilityItem {
+public class MagnetItem extends Item implements EnergyHolder {
 
     private final int range;
     private final int maxEnergy;
@@ -83,23 +83,19 @@ public class MagnetItem extends Item implements EnergyHolder, CustomDurabilityIt
         return range;
     }
 
-    @Environment(EnvType.CLIENT)
     @Override
-    public double getDurabilityBarProgress(ItemStack stack) {
-        EnergyHandler energy = Energy.of(stack);
-        double stored = energy.getMaxStored() - energy.getEnergy();
-        return stored / energy.getMaxStored();
-    }
-
-    @Environment(EnvType.CLIENT)
-    @Override
-    public boolean hasDurabilityBar(ItemStack stack) {
+    public boolean isItemBarVisible(ItemStack stack) {
         return true;
     }
 
-    @Environment(EnvType.CLIENT)
     @Override
-    public int getDurabilityBarColor(ItemStack stack) {
-        return CustomDurabilityItem.super.getDurabilityBarColor(stack);
+    public int getItemBarColor(ItemStack stack) {
+        return 0xFF800600;
+    }
+
+    @Override
+    public int getItemBarStep(ItemStack stack) {
+        EnergyHandler energy = Energy.of(stack);
+        return (int) (energy.getEnergy() / energy.getMaxStored() * 13);
     }
 }
