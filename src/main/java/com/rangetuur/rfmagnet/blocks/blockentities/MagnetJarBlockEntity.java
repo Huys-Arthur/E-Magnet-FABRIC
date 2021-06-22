@@ -21,6 +21,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import team.reborn.energy.Energy;
@@ -116,28 +117,36 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
         double y = pos.getY();
         double z = pos.getZ();
 
-        List<ItemEntity> items = world.getEntitiesByType(EntityType.ITEM, new Box(x-range,y-range,z-range,x+1+range,y+1+range,z+1+range), EntityPredicates.VALID_ENTITY);
-        List<ItemEntity> itemsInBlock = world.getEntitiesByType(EntityType.ITEM, new Box(pos.getX(),pos.getY(),pos.getZ(),pos.getX()+1,pos.getY()+1,pos.getZ()+1), EntityPredicates.VALID_ENTITY);
+        if(world!=null){
+            List<ItemEntity> items = world.getEntitiesByType(EntityType.ITEM, new Box(x-range,y-range,z-range,x+1+range,y+1+range,z+1+range), EntityPredicates.VALID_ENTITY);
+            List<ItemEntity> itemsInBlock = world.getEntitiesByType(EntityType.ITEM, new Box(pos.getX(),pos.getY(),pos.getZ(),pos.getX()+1,pos.getY()+1,pos.getZ()+1), EntityPredicates.VALID_ENTITY);
 
-        for (ItemEntity item : items) {
-            if (!itemsInBlock.contains(item)){
-                int energyForItem = item.getStack().getCount();
-                if(Energy.of(stack).getEnergy()>=energyForItem) {
-                    item.updatePosition(x, y, z);
-                    Energy.of(stack).extract(energyForItem);
+            for (ItemEntity item : items) {
+                if (!itemsInBlock.contains(item)){
+                    int energyForItem = item.getStack().getCount();
+                    if(Energy.of(stack).getEnergy()>=energyForItem) {
+
+                        Vec3d itemVector = new Vec3d(item.getX(), item.getY(), item.getZ());
+                        Vec3d playerVector = new Vec3d(x, y, z);
+                        item.move(null, playerVector.subtract(itemVector).multiply(0.5));
+
+                        Energy.of(stack).extract(energyForItem);
+                    }
                 }
             }
         }
     }
 
     private void putItemAroundBlockInInventory() {
-        List<ItemEntity> items = world.getEntitiesByType(EntityType.ITEM, new Box(pos.getX(),pos.getY(),pos.getZ(),pos.getX()+1,pos.getY()+1,pos.getZ()+1), EntityPredicates.VALID_ENTITY);
-        if (!items.isEmpty()){
-            ItemEntity item = items.get(0);
+        if (world!=null){
+            List<ItemEntity> items = world.getEntitiesByType(EntityType.ITEM, new Box(pos.getX(),pos.getY(),pos.getZ(),pos.getX()+1,pos.getY()+1,pos.getZ()+1), EntityPredicates.VALID_ENTITY);
+            if (!items.isEmpty()){
+                ItemEntity item = items.get(0);
 
-            setStack(1, item.getStack().copy());
-            item.remove(Entity.RemovalReason.DISCARDED);
-            markDirty();
+                setStack(1, item.getStack().copy());
+                item.remove(Entity.RemovalReason.DISCARDED);
+                markDirty();
+            }
         }
     }
 

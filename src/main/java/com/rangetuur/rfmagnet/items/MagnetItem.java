@@ -11,6 +11,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import team.reborn.energy.Energy;
 import team.reborn.energy.EnergyHandler;
@@ -68,7 +69,11 @@ public class MagnetItem extends Item implements EnergyHolder, CustomDurabilityIt
             int energyForItem = item.getStack().getCount();
             if(Energy.of(stack).getEnergy()>=energyForItem) {
                 item.setPickupDelay(0);
-                item.updatePosition(x, y, z);
+
+                Vec3d itemVector = new Vec3d(item.getX(), item.getY(), item.getZ());
+                Vec3d playerVector = new Vec3d(x, y, z);
+                item.move(null, playerVector.subtract(itemVector).multiply(0.5));
+
                 Energy.of(stack).set(Energy.of(stack).getEnergy()-energyForItem);
             }
         }
