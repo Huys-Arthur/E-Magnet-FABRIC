@@ -4,7 +4,7 @@ import com.rangetuur.rfmagnet.registry.ModBlockEntityTypes;
 import com.rangetuur.rfmagnet.registry.ModBlocks;
 import com.rangetuur.rfmagnet.registry.ModItems;
 import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
+import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 
 public class RFMagnet implements ModInitializer {
@@ -13,7 +13,7 @@ public class RFMagnet implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        AutoConfig.register(RFMagnetConfig.class, GsonConfigSerializer::new);
+        AutoConfig.register(RFMagnetConfig.class, JanksonConfigSerializer::new);
 
         ModItems.registerItems();
         ModBlocks.registerBlocks();
