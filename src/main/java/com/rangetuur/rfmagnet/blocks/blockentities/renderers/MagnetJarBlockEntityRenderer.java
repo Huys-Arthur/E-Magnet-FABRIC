@@ -4,7 +4,6 @@ import com.rangetuur.rfmagnet.blocks.blockentities.MagnetJarBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.model.json.ModelTransformation;
@@ -14,8 +13,7 @@ import net.minecraft.util.math.Vec3f;
 
 public class MagnetJarBlockEntityRenderer implements BlockEntityRenderer<MagnetJarBlockEntity> {
 
-    public MagnetJarBlockEntityRenderer(BlockEntityRendererFactory.Context dispatcher) {
-    }
+    public MagnetJarBlockEntityRenderer(BlockEntityRendererFactory.Context dispatcher) {}
 
     @Override
     public void render(MagnetJarBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {

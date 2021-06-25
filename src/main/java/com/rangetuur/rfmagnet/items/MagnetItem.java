@@ -2,8 +2,6 @@ package com.rangetuur.rfmagnet.items;
 
 import com.rangetuur.rfmagnet.RFMagnetConfig;
 import me.shedaniel.autoconfig.AutoConfig;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;

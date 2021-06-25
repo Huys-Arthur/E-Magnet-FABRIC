@@ -1,7 +1,6 @@
 package com.rangetuur.rfmagnet.blocks;
 
 import com.rangetuur.rfmagnet.blocks.blockentities.MagnetJarBlockEntity;
-import com.rangetuur.rfmagnet.items.MagnetItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;

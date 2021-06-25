@@ -11,7 +11,6 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
-import net.minecraft.fluid.LavaFluid;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
@@ -92,16 +91,23 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
         if (e!=null) {
             if(e.getStack(0)!=ItemStack.EMPTY && Energy.of(e.getStack(0)).getEnergy()!=Energy.of(e.getStack(0)).getMaxStored()){
                 BlockEntity entityUp = world.getBlockEntity(e.getPos().up());
-                if (config.blocks.generate_energy_magnet_jar){
-                    if (world.getFluidState(e.getPos().up()).getFluid() instanceof LavaFluid){
-                        Energy.of(e.getStack(0)).insert(config.blocks.generate_amount_magnet_jar);
-                    }
+                if(!world.getEntitiesByType(EntityType.LIGHTNING_BOLT,new Box(pos.getX(), pos.getY()+1, pos.getZ(), pos.getX()+1, pos.getY()+3, pos.getZ()+1) , EntityPredicates.VALID_ENTITY).isEmpty()){
+                    Energy.of(e.getStack(0)).set(Energy.of(e.getStack(0)).getMaxStored());
+                    e.markDirty();
                 }
                 else if (entityUp!=null){
                     Energy.of(entityUp).side(EnergySide.DOWN).into(Energy.of(e.getStack(0))).move();
+                    e.markDirty();
                 }
                 if(e.getStack(0).getItem() instanceof MagnetItem){
-                    e.attractItemsAroundBlock(pos, e.getStack(0));
+                    if(config.blocks.disable_magnet_jar_with_redstone){
+                        if(!world.isReceivingRedstonePower(pos)){
+                            e.attractItemsAroundBlock(pos, e.getStack(0));
+                        }
+                    }
+                    else{
+                        e.attractItemsAroundBlock(pos, e.getStack(0));
+                    }
                 }
             }
             if (e.getStack(1).isEmpty()) {
@@ -126,10 +132,11 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
                     if(Energy.of(stack).getEnergy()>=energyForItem) {
 
                         Vec3d itemVector = new Vec3d(item.getX(), item.getY(), item.getZ());
-                        Vec3d blockVector = new Vec3d(x, y, z);
+                        Vec3d blockVector = new Vec3d(x+0.5, y+0.5, z+0.5);
                         item.move(null, blockVector.subtract(itemVector).multiply(0.5));
 
                         Energy.of(stack).extract(energyForItem);
+                        markDirty();
                     }
                 }
             }
