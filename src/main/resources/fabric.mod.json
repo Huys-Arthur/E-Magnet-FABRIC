@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "id": "rfmagnet",
+  "id": "emagnet",
   "version": "${version}",
 
-  "name": "RF Magnet",
-  "description": "A mod that adds magnets that work on RF",
+  "name": "E Magnet",
+  "description": "A mod that adds magnets that work on energy",
   "authors": [
     "Rangetuur"
   ],
@@ -14,15 +14,15 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/rfmagnet/icon.png",
+  "icon": "assets/emagnet/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.rangetuur.rfmagnet.RFMagnet"
+      "com.rangetuur.emagnet.EMagnet"
     ],
     "client": [
-      "com.rangetuur.rfmagnet.RFMagnetClient"
+      "com.rangetuur.emagnet.EMagnetClient"
     ]
   },
   "mixins": [
