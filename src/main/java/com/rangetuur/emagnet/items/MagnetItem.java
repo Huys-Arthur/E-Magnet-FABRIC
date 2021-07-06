@@ -58,7 +58,7 @@ public class MagnetItem extends Item implements EnergyHolder {
 
     private void attractItemsToPlayer(Entity entity, ItemStack stack) {
         double x = entity.getX();
-        double y = entity.getY() + 0.75;
+        double y = entity.getY();
         double z = entity.getZ();
 
         List<ItemEntity> items = entity.getEntityWorld().getEntitiesByType(EntityType.ITEM, new Box(x-range,y-range,z-range,x+range,y+range,z+range), EntityPredicates.VALID_ENTITY);
@@ -69,7 +69,7 @@ public class MagnetItem extends Item implements EnergyHolder {
                 item.setPickupDelay(0);
 
                 Vec3d itemVector = new Vec3d(item.getX(), item.getY(), item.getZ());
-                Vec3d playerVector = new Vec3d(x, y, z);
+                Vec3d playerVector = new Vec3d(x, y+0.75, z);
                 item.move(null, playerVector.subtract(itemVector).multiply(0.5));
 
                 Energy.of(stack).set(Energy.of(stack).getEnergy()-energyForItem);

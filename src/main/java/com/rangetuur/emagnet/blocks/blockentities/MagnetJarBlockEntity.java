@@ -89,17 +89,18 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
         MagnetJarBlockEntity e = (MagnetJarBlockEntity) world.getBlockEntity(pos);
 
         if (e!=null) {
-            if(e.getStack(0)!=ItemStack.EMPTY && Energy.of(e.getStack(0)).getEnergy()!=Energy.of(e.getStack(0)).getMaxStored()){
-                BlockEntity entityUp = world.getBlockEntity(e.getPos().up());
-                if(!world.getEntitiesByType(EntityType.LIGHTNING_BOLT,new Box(pos.getX(), pos.getY()+1, pos.getZ(), pos.getX()+1, pos.getY()+3, pos.getZ()+1) , EntityPredicates.VALID_ENTITY).isEmpty()){
-                    Energy.of(e.getStack(0)).set(Energy.of(e.getStack(0)).getMaxStored());
-                    e.markDirty();
+            if(e.getStack(0)!=ItemStack.EMPTY){
+                if(Energy.of(e.getStack(0)).getEnergy()!=Energy.of(e.getStack(0)).getMaxStored()) {
+                    BlockEntity entityUp = world.getBlockEntity(e.getPos().up());
+                    if (!world.getEntitiesByType(EntityType.LIGHTNING_BOLT, new Box(pos.getX(), pos.getY() + 1, pos.getZ(), pos.getX() + 1, pos.getY() + 3, pos.getZ() + 1), EntityPredicates.VALID_ENTITY).isEmpty()) {
+                        Energy.of(e.getStack(0)).set(Energy.of(e.getStack(0)).getMaxStored());
+                        e.markDirty();
+                    } else if (entityUp != null) {
+                        Energy.of(entityUp).side(EnergySide.DOWN).into(Energy.of(e.getStack(0))).move();
+                        e.markDirty();
+                    }
                 }
-                else if (entityUp!=null){
-                    Energy.of(entityUp).side(EnergySide.DOWN).into(Energy.of(e.getStack(0))).move();
-                    e.markDirty();
-                }
-                if(e.getStack(0).getItem() instanceof MagnetItem){
+                if (e.getStack(0).getItem() instanceof MagnetItem) {
                     if(config.blocks.disable_magnet_jar_with_redstone){
                         if(!world.isReceivingRedstonePower(pos)){
                             e.attractItemsAroundBlock(pos, e.getStack(0));
@@ -110,6 +111,7 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
                     }
                 }
             }
+
             if (e.getStack(1).isEmpty()) {
                 e.putItemAroundBlockInInventory();
             }
