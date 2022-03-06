@@ -4,6 +4,7 @@ import com.rangetuur.emagnet.EMagnet;
 import com.rangetuur.emagnet.blocks.blockentities.MagnetJarBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.block.entity.ConduitBlockEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 

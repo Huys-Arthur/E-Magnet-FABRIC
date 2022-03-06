@@ -15,43 +15,45 @@ import net.minecraft.text.Texts;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.Energy;
-import team.reborn.energy.EnergyHandler;
-import team.reborn.energy.EnergyHolder;
-import team.reborn.energy.EnergyTier;
+import team.reborn.energy.api.base.SimpleBatteryItem;
 
-import java.text.NumberFormat;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
-public class MagnetItem extends Item implements EnergyHolder {
+public class MagnetItem extends Item implements SimpleBatteryItem {
 
     private final int range;
-    private final int maxEnergy;
-    private final EnergyTier tier;
+    private final long cap;
+    private final long max_io;
 
-    public MagnetItem(Settings settings, int range, int maxEnergy, EnergyTier tier) {
+    public MagnetItem(Settings settings, int range, int cap, int max_io) {
         super(settings);
         this.range = range;
-        this.maxEnergy = maxEnergy;
-        this.tier = tier;
+        this.cap = cap;
+        this.max_io = max_io;
     }
 
     @Override
-    public double getMaxStoredPower() {
-        return maxEnergy;
+    public long getEnergyCapacity() {
+        return cap;
     }
 
     @Override
-    public EnergyTier getTier() {
-        return tier;
+    public long getEnergyMaxInput() {
+        return max_io;
+    }
+
+    @Override
+    public long getEnergyMaxOutput() {
+        return max_io;
     }
 
     @Override
     public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, world, entity, slot, selected);
-        if (Energy.of(stack).getEnergy()>maxEnergy){
-            Energy.of(stack).set(maxEnergy);
+        if (getStoredEnergy(stack) > getEnergyCapacity()){
+            setStoredEnergy(stack, getEnergyCapacity());
         }
 
         for (ItemStack s: entity.getItemsHand()){
@@ -70,15 +72,15 @@ public class MagnetItem extends Item implements EnergyHolder {
         List<ItemEntity> items = entity.getEntityWorld().getEntitiesByType(EntityType.ITEM, new Box(x-range,y-range,z-range,x+range,y+range,z+range), EntityPredicates.VALID_ENTITY);
 
         for (ItemEntity item : items) {
-            int energyForItem = item.getStack().getCount();
-            if(Energy.of(stack).getEnergy()>=energyForItem) {
+            int ForItem = item.getStack().getCount();
+            if(getStoredEnergy(stack)>=ForItem) {
                 item.setPickupDelay(0);
 
                 Vec3d itemVector = new Vec3d(item.getX(), item.getY(), item.getZ());
                 Vec3d playerVector = new Vec3d(x, y+0.75, z);
                 item.move(null, playerVector.subtract(itemVector).multiply(0.5));
 
-                Energy.of(stack).set(Energy.of(stack).getEnergy()-energyForItem);
+                setStoredEnergy(stack, getStoredEnergy(stack)-ForItem);
             }
         }
     }
@@ -99,13 +101,12 @@ public class MagnetItem extends Item implements EnergyHolder {
 
     @Override
     public int getItemBarStep(ItemStack stack) {
-        EnergyHandler energy = Energy.of(stack);
-        return (int) (energy.getEnergy() / energy.getMaxStored() * 13);
+        return (int) ((float) getStoredEnergy(stack) / getEnergyCapacity() * 13);
     }
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
-        tooltip.add(new LiteralText(String.format("%s/%s EU", Energy.of(stack).getEnergy(), Energy.of(stack).getMaxStored())));
+        tooltip.add(new LiteralText(String.format("%s/%s EU", getStoredEnergy(stack), getEnergyCapacity())));
     }
 }

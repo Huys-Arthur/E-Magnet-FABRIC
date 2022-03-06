@@ -1,20 +1,30 @@
 package com.rangetuur.emagnet.blocks.blockentities;
 
 import com.rangetuur.emagnet.ImplementedInventory;
+import com.mojang.serialization.Decoder.Simple;
 import com.rangetuur.emagnet.EMagnetConfig;
 import com.rangetuur.emagnet.items.MagnetItem;
 import com.rangetuur.emagnet.registry.ModBlockEntityTypes;
 import me.shedaniel.autoconfig.AutoConfig;
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.Packet;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -23,11 +33,14 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.*;
+import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.EnergyStorageUtil;
+import team.reborn.energy.api.base.SimpleBatteryItem;
 
 import java.util.List;
 
-public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInventory, SidedInventory, BlockEntityClientSerializable, EnergyStorage {
+public class MagnetJarBlockEntity extends BlockEntity
+        implements ImplementedInventory, SidedInventory, ContainerItemContext {
 
     private final DefaultedList<ItemStack> items = DefaultedList.ofSize(2, ItemStack.EMPTY);
 
@@ -35,28 +48,26 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
         super(ModBlockEntityTypes.MAGNET_JAR, pos, state);
     }
 
-
     @Override
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
-        Inventories.readNbt(tag,items);
+        Inventories.readNbt(tag, items);
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag) {
-        Inventories.writeNbt(tag,items);
-        return super.writeNbt(tag);
+    public void writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
+        Inventories.writeNbt(tag, items);
     }
 
     @Override
-    public void fromClientTag(NbtCompound tag) {
-        Inventories.readNbt(tag,items);
+    public Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
     }
 
     @Override
-    public NbtCompound toClientTag(NbtCompound tag) {
-        Inventories.writeNbt(tag,items);
-        return tag;
+    public NbtCompound toInitialChunkDataNbt() {
+        return createNbt();
     }
 
     @Override
@@ -76,45 +87,53 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        return stack.getItem() instanceof EnergyHolder;
+        return stack.getItem() instanceof SimpleBatteryItem && slot == 0;
     }
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return slot==1;
+        return slot == 1;
     }
 
     public static <T extends BlockEntity> void tick(World world, BlockPos pos, BlockState state, T t) {
         EMagnetConfig config = AutoConfig.getConfigHolder(EMagnetConfig.class).getConfig();
         MagnetJarBlockEntity e = (MagnetJarBlockEntity) world.getBlockEntity(pos);
 
-        if (e!=null) {
-            if(e.getStack(0)!=ItemStack.EMPTY){
-                if(Energy.of(e.getStack(0)).getEnergy()!=Energy.of(e.getStack(0)).getMaxStored()) {
-                    BlockEntity entityUp = world.getBlockEntity(e.getPos().up());
-                    if (!world.getEntitiesByType(EntityType.LIGHTNING_BOLT, new Box(pos.getX(), pos.getY() + 1, pos.getZ(), pos.getX() + 1, pos.getY() + 3, pos.getZ() + 1), EntityPredicates.VALID_ENTITY).isEmpty()) {
-                        Energy.of(e.getStack(0)).set(Energy.of(e.getStack(0)).getMaxStored());
+        if (e != null) {
+            if (e.getStack(0) != ItemStack.EMPTY) {
+                MagnetItem item = (MagnetItem) e.getStack(0).getItem();
+
+                if (item.getStoredEnergy(e.getStack(0)) != item.getEnergyCapacity()) {
+                    if (!world.getEntitiesByType(
+                            EntityType.LIGHTNING_BOLT,
+                            new Box(pos.getX(), pos.getY() + 1, pos.getZ(), pos.getX() + 1, pos.getY() + 3,
+                                    pos.getZ() + 1),
+                            EntityPredicates.VALID_ENTITY).isEmpty()) {
+                        item.setStoredEnergy(e.getStack(0), item.getEnergyCapacity());
                         e.markDirty();
-                    } else if (entityUp != null) {
-                        Energy.of(entityUp).side(EnergySide.DOWN).into(Energy.of(e.getStack(0))).move();
+                    } else {
+                        EnergyStorageUtil.move(EnergyStorage.SIDED.find(world, e.getPos().up(), Direction.DOWN),
+                                EnergyStorage.ITEM.find(e.getStack(0),
+                                        ContainerItemContext.ofSingleSlot(e.getMainSlot())),
+                                item.getEnergyMaxInput(), null);
                         e.markDirty();
                     }
                 }
                 if (e.getStack(0).getItem() instanceof MagnetItem) {
-                    if(config.blocks.disable_magnet_jar_with_redstone){
-                        if(!world.isReceivingRedstonePower(pos)){
+                    if (config.blocks.disable_magnet_jar_with_redstone) {
+                        if (!world.isReceivingRedstonePower(pos)) {
                             e.attractItemsAroundBlock(pos, e.getStack(0));
                         }
-                    }
-                    else{
+                    } else {
                         e.attractItemsAroundBlock(pos, e.getStack(0));
                     }
                 }
-            }
 
-            if (e.getStack(1).isEmpty()) {
-                e.putItemAroundBlockInInventory();
             }
+        }
+        
+        if (e.getStack(1).isEmpty()) {
+            e.putItemAroundBlockInInventory();
         }
     }
 
@@ -124,20 +143,28 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
         double y = pos.getY();
         double z = pos.getZ();
 
-        if(world!=null){
-            List<ItemEntity> items = world.getEntitiesByType(EntityType.ITEM, new Box(x-range,y-range,z-range,x+1+range,y+1+range,z+1+range), EntityPredicates.VALID_ENTITY);
-            List<ItemEntity> itemsInBlock = world.getEntitiesByType(EntityType.ITEM, new Box(pos.getX(),pos.getY(),pos.getZ(),pos.getX()+1,pos.getY()+1,pos.getZ()+1), EntityPredicates.VALID_ENTITY);
+        if (world != null) {
+            MagnetItem magnetItem = (MagnetItem) stack.getItem();
+
+            List<ItemEntity> items = world.getEntitiesByType(EntityType.ITEM,
+                    new Box(x - range, y - range, z - range, x + 1 + range, y + 1 + range, z + 1 + range),
+                    EntityPredicates.VALID_ENTITY);
+            List<ItemEntity> itemsInBlock = world.getEntitiesByType(EntityType.ITEM,
+                    new Box(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1),
+                    EntityPredicates.VALID_ENTITY);
 
             for (ItemEntity item : items) {
-                if (!itemsInBlock.contains(item)){
+                if (!itemsInBlock.contains(item)) {
                     int energyForItem = item.getStack().getCount();
-                    if(Energy.of(stack).getEnergy()>=energyForItem) {
+                    if (magnetItem.getStoredEnergy(stack) >= energyForItem) {
 
                         Vec3d itemVector = new Vec3d(item.getX(), item.getY(), item.getZ());
-                        Vec3d blockVector = new Vec3d(x+0.5, y+0.5, z+0.5);
+                        Vec3d blockVector = new Vec3d(x + 0.5, y + 0.5, z + 0.5);
                         item.move(null, blockVector.subtract(itemVector).multiply(0.5));
 
-                        Energy.of(stack).extract(energyForItem);
+                        EnergyStorageUtil.move(
+                                EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(getMainSlot())), null,
+                                magnetItem.getEnergyMaxOutput(), null);
                         markDirty();
                     }
                 }
@@ -146,9 +173,11 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
     }
 
     private void putItemAroundBlockInInventory() {
-        if (world!=null){
-            List<ItemEntity> items = world.getEntitiesByType(EntityType.ITEM, new Box(pos.getX(),pos.getY(),pos.getZ(),pos.getX()+1,pos.getY()+1,pos.getZ()+1), EntityPredicates.VALID_ENTITY);
-            if (!items.isEmpty()){
+        if (world != null) {
+            List<ItemEntity> items = world.getEntitiesByType(EntityType.ITEM,
+                    new Box(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1),
+                    EntityPredicates.VALID_ENTITY);
+            if (!items.isEmpty()) {
                 ItemEntity item = items.get(0);
 
                 setStack(1, item.getStack().copy());
@@ -159,35 +188,21 @@ public class MagnetJarBlockEntity extends BlockEntity implements ImplementedInve
     }
 
     @Override
-    public double getStored(EnergySide face) {
+    public SingleSlotStorage<ItemVariant> getMainSlot() {
+        var invWrapper = InventoryStorage.of(this, null);
+        var input = invWrapper.getSlot(0);
+        return input;
+    }
+
+    @Override
+    public long insertOverflow(ItemVariant itemVariant, long maxAmount, TransactionContext transactionContext) {
+        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
-    public void setStored(double amount) {
-
+    public List<SingleSlotStorage<ItemVariant>> getAdditionalSlots() {
+        // TODO Auto-generated method stub
+        return null;
     }
-
-    @Override
-    public double getMaxStoredPower() {
-        return 0;
-    }
-
-
-    @Override
-    public EnergyTier getTier() {
-        return EnergyTier.MICRO;
-    }
-
-    @Override
-    public double getMaxInput(EnergySide side) {
-        return 0;
-    }
-
-    @Override
-    public double getMaxOutput(EnergySide side) {
-        return 0;
-    }
-
-
 }
