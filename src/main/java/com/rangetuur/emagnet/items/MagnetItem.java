@@ -11,7 +11,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.text.Texts;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -52,11 +51,11 @@ public class MagnetItem extends Item implements SimpleBatteryItem {
     @Override
     public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, world, entity, slot, selected);
-        if (getStoredEnergy(stack) > getEnergyCapacity()){
+        if (getStoredEnergy(stack) > getEnergyCapacity()) {
             setStoredEnergy(stack, getEnergyCapacity());
         }
 
-        for (ItemStack s: entity.getItemsHand()){
+        for (ItemStack s : entity.getItemsHand()) {
             EMagnetConfig config = AutoConfig.getConfigHolder(EMagnetConfig.class).getConfig();
             if (s.getItem() instanceof MagnetItem || config.magnets.magnet_always_works) {
                 attractItemsToPlayer(entity, s);
@@ -69,18 +68,20 @@ public class MagnetItem extends Item implements SimpleBatteryItem {
         double y = entity.getY();
         double z = entity.getZ();
 
-        List<ItemEntity> items = entity.getEntityWorld().getEntitiesByType(EntityType.ITEM, new Box(x-range,y-range,z-range,x+range,y+range,z+range), EntityPredicates.VALID_ENTITY);
+        List<ItemEntity> items = entity.getEntityWorld().getEntitiesByType(EntityType.ITEM,
+                new Box(x - range, y - range, z - range, x + range, y + range, z + range),
+                EntityPredicates.VALID_ENTITY);
 
         for (ItemEntity item : items) {
             int ForItem = item.getStack().getCount();
-            if(getStoredEnergy(stack)>=ForItem) {
+            if (getStoredEnergy(stack) >= ForItem) {
                 item.setPickupDelay(0);
 
                 Vec3d itemVector = new Vec3d(item.getX(), item.getY(), item.getZ());
-                Vec3d playerVector = new Vec3d(x, y+0.75, z);
+                Vec3d playerVector = new Vec3d(x, y + 0.75, z);
                 item.move(null, playerVector.subtract(itemVector).multiply(0.5));
 
-                setStoredEnergy(stack, getStoredEnergy(stack)-ForItem);
+                setStoredEnergy(stack, getStoredEnergy(stack) - ForItem);
             }
         }
     }

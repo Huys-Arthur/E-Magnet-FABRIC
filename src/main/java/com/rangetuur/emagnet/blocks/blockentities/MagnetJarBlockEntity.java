@@ -1,7 +1,6 @@
 package com.rangetuur.emagnet.blocks.blockentities;
 
 import com.rangetuur.emagnet.ImplementedInventory;
-import com.mojang.serialization.Decoder.Simple;
 import com.rangetuur.emagnet.EMagnetConfig;
 import com.rangetuur.emagnet.items.MagnetItem;
 import com.rangetuur.emagnet.registry.ModBlockEntityTypes;
@@ -10,7 +9,6 @@ import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -18,7 +16,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -131,7 +128,7 @@ public class MagnetJarBlockEntity extends BlockEntity
 
             }
         }
-        
+
         if (e.getStack(1).isEmpty()) {
             e.putItemAroundBlockInInventory();
         }
